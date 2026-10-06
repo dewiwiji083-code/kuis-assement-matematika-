@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MathQuest VII - Asesmen Matematika Interaktif</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+        h1, h2, h3, .font-heading {
+            font-family: 'Outfit', sans-serif;
+        }
+        .fraction {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            vertical-align: middle;
+            margin: 0 4px;
+            font-size: 0.9em;
+        }
+        .fraction span:first-child {
+            border-bottom: 2px solid currentColor;
+            padding: 0 4px;
+            line-height: 1.1;
+        }
+        .fraction span:last-child {
+            padding: 0 4px;
+            line-height: 1.1;
+        }
+        .mixed-fraction {
+            display: inline-flex;
+            align-items: center;
+            vertical-align: middle;
+            font-weight: 600;
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="min-h-full flex flex-col relative selection:bg-indigo-500 selection:text-white">
+
+    <!-- Dynamic Animated Background Canvas -->
+    <canvas id="bg-canvas" class="fixed inset-0 pointer-events-none z-0"></canvas>
+
+    <!-- App Container -->
+    <div id="app" class="relative z-10 min-h-screen flex flex-col justify-between max-w-5xl mx-auto px-4 py-6 w-full">
+        
+        <header class="flex flex-wrap items-center justify-between gap-4 bg-slate-900/80 border border-slate-800 p-4 rounded-2xl backdrop-blur-md mb-6 shadow-xl">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center font-bold text-white text-xl shadow-lg shadow-indigo-500/30">
+                    ∑
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent">MathQuest VII</h1>
+                    <p class="text-xs text-slate-400">Asesmen Sumatif Tengah Semester • Kelas 7</p>
+                </div>
+            </div>
+
+            <!-- Controls & Mode Switcher -->
+            <div class="flex items-center gap-2">
+                <button id="sound-btn" onclick="toggleSound()" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/50 transition-all flex items-center gap-2 text-xs font-semibold" title="Toggle Suara">
+                    <span id="sound-icon">🔊</span> <span class="hidden sm:inline">Suara</span>
+                </button>
+                <button onclick="switchTab('quiz')" id="nav-quiz-btn" class="px-3.5 py-2 rounded-xl bg-indigo-600 text-white font-semibold text-xs shadow-lg shadow-indigo-600/30 transition-all">
+                    🎮 Mode Siswa
+                </button>
+                <button onclick="switchTab('teacher')" id="nav-teacher-btn" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/50 text-xs font-semibold transition-all">
+                    👨‍🏫 Dashboard Guru
+                </button>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="flex-grow flex flex-col justify-center">
+
+            <!-- 1. START SCREEN / STUDENT LOGIN -->
+            <div id="start-screen" class="glass-card rounded-3xl p-6 sm:p-10 shadow-2xl max-w-xl mx-auto w-full border border-indigo-500/20">
+                <div class="text-center mb-8">
+                    <span class="px-3 py-1 text-xs font-bold uppercase tracking-widest text-indigo-400 bg-indigo-500/10 rounded-full border border-indigo-500/20">Asesmen Matematika Kelas 7</span>
+                    <h2 class="text-3xl font-extrabold text-white mt-3">Petualangan Matematika</h2>
+                    <p class="text-slate-400 text-sm mt-2">Isi identitas Anda dan selesaikan 20 soal matematika untuk mendapatkan skor terbaik!</p>
+                </div>
+
+                <form id="student-form" onsubmit="startQuiz(event)" class="space-y-5">
+                    <div>
+                        <label for="student-name" class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">Nama Lengkap Siswa</label>
+                        <input type="text" id="student-name" required placeholder="Contoh: Ahmad Rizky Maulana" class="w-full px-4 py-3.5 bg-slate-950/60 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm">
+                    </div>
+
+                    <div>
+                        <label for="student-class" class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">Pilih Kelas</label>
+                        <select id="student-class" required class="w-full px-4 py-3.5 bg-slate-950/60 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm">
+                            <option value="" class="bg-slate-900">-- Pilih Kelas Anda --</option>
+                            <option value="VII A" class="bg-slate-900">Kelas VII A</option>
+                            <option value="VII B" class="bg-slate-900">Kelas VII B</option>
+                            <option value="VII C" class="bg-slate-900">Kelas VII C</option>
+                            <option value="VII D" class="bg-slate-900">Kelas VII D</option>
+                        </select>
+                    </div>
+
+                    <div class="p-4 bg-slate-900/80 rounded-2xl border border-slate-800/80 text-xs text-slate-400 space-y-2">
+                        <div class="flex items-center gap-2 font-semibold text-slate-200">
+                            <span>💡 Informasi Ujian:</span>
+                        </div>
+                        <ul class="list-disc list-inside space-y-1 text-slate-400 pl-1">
+                            <li>Terdiri dari 20 Soal Pilihan Ganda (A, B, C, D).</li>
+                            <li>Waktu pengerjaan akan dihitung otomatis.</li>
+                            <li>Nilai dan nama Anda akan terkirim langsung ke <strong>Dashboard Guru</strong>.</li>
+                        </ul>
+                    </div>
+
+                    <button type="submit" class="w-full py-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/25 transform active:scale-95 transition-all text-base flex items-center justify-center gap-2">
+                        <span>🚀 Mulai Pengerjaan Soal</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- 2. QUIZ SCREEN -->
+            <div id="quiz-screen" class="hidden space-y-6">
+                <!-- Info Top Bar -->
+                <div class="glass-card rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 border border-indigo-500/20">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 font-bold text-sm">
+                            👤
+                        </div>
+                        <div>
+                            <div class="text-sm font-bold text-white" id="quiz-student-name">Nama Siswa</div>
+                            <div class="text-xs text-indigo-300 font-medium" id="quiz-student-class">Kelas VII</div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Indicator & Timer -->
+                    <div class="flex items-center gap-6">
+                        <div class="text-right">
+                            <span class="text-xs text-slate-400 block font-medium">Waktu Berjalan</span>
+                            <span id="timer-display" class="font-mono text-lg font-bold text-amber-400">00:00</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs text-slate-400 block font-medium">Progres Jawab</span>
+                            <span class="text-sm font-bold text-indigo-300"><span id="answered-count">0</span> / 20 Soal</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Quiz Layout: Question Card & Question Grid Sidebar -->
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                    
+                    <!-- Question Main Card -->
+                    <div class="lg:col-span-3 glass-card rounded-3xl p-6 sm:p-8 flex flex-col justify-between border border-slate-700/50 shadow-2xl relative overflow-hidden">
+                        
+                        <div>
+                            <div class="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
+                                <span class="px-3 py-1 bg-indigo-500/20 text-indigo-300 rounded-full text-xs font-bold border border-indigo-500/30">
+                                    Soal Nomor <span id="current-q-num">1</span> dari 20
+                                </span>
+                                <button onclick="toggleGridModal()" class="lg:hidden text-xs text-slate-300 bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-700">
+                                    📋 Navigasi Soal
+                                </button>
+                            </div>
+
+                            <!-- Question Text -->
+                            <div class="min-h-[120px] text-base sm:text-lg font-medium text-slate-100 leading-relaxed mb-8" id="question-text">
+                                <!-- Question content injected here -->
+                            </div>
+
+                            <!-- Options List -->
+                            <div class="space-y-3" id="options-container">
+                                <!-- Options injected here -->
+                            </div>
+                        </div>
+
+                        <!-- Card Footer Controls -->
+                        <div class="flex items-center justify-between mt-8 pt-6 border-t border-slate-800">
+                            <button id="prev-btn" onclick="navigateQuestion(-1)" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold border border-slate-700/80 transition-all flex items-center gap-2">
+                                ⬅️ Sebelumnya
+                            </button>
+
+                            <button id="next-btn" onclick="navigateQuestion(1)" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/30">
+                                Selanjutnya ➡️
+                            </button>
+
+                            <button id="submit-quiz-btn" onclick="confirmSubmitQuiz()" class="hidden px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-sm font-bold shadow-lg shadow-emerald-500/30 transition-all flex items-center gap-2">
+                                🚀 Kumpulkan Nilai
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar Question Palette Grid (Desktop) -->
+                    <div class="hidden lg:block glass-card rounded-3xl p-5 border border-slate-800">
+                        <h3 class="text-sm font-bold text-slate-300 mb-3 flex items-center justify-between">
+                            <span>Peta Soal</span>
+                            <span class="text-xs text-slate-500 font-normal">20 Butir</span>
+                        </h3>
+                        <p class="text-xs text-slate-400 mb-4">Klik nomor soal untuk berpindah cepat:</p>
+                        
+                        <div class="grid grid-cols-4 gap-2" id="desktop-q-grid">
+                            <!-- Question buttons injected here -->
+                        </div>
+
+                        <div class="mt-6 pt-4 border-t border-slate-800 text-xs space-y-2">
+                            <div class="flex items-center gap-2 text-slate-400">
+                                <span class="w-3 h-3 rounded-md bg-indigo-600 inline-block"></span> Terjawab
+                            </div>
+                            <div class="flex items-center gap-2 text-slate-400">
+                                <span class="w-3 h-3 rounded-md bg-slate-800 border border-slate-700 inline-block"></span> Belum
+                            </div>
+                            <div class="flex items-center gap-2 text-slate-400">
+                                <span class="w-3 h-3 rounded-md bg-amber-500 inline-block"></span> Sedang Dibuka
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. RESULT SCREEN -->
+            <div id="result-screen" class="hidden glass-card rounded-3xl p-6 sm:p-10 text-center border border-indigo-500/30 shadow-2xl max-w-3xl mx-auto w-full">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-full shadow-lg shadow-emerald-500/30 mb-6 text-3xl">
+                    🏆
+                </div>
+                
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-white mb-2">Asesmen Selesai!</h2>
+                <p class="text-slate-300 text-sm mb-6">Hebat, <span id="result-student-name" class="font-bold text-indigo-300"></span> (<span id="result-student-class"></span>)! Nilai Anda telah otomatis terkirim ke Dashboard Guru.</p>
+
+                <!-- Score Banner -->
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 mb-8 max-w-md mx-auto shadow-inner relative overflow-hidden">
+                    <div class="text-xs text-slate-400 uppercase tracking-widest font-semibold mb-1">Skor / Nilai Akhir</div>
+                    <div class="text-6xl font-black bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent my-2" id="final-score-display">
+                        0
+                    </div>
+                    <div class="text-xs text-slate-400 font-medium" id="score-predicate">Memuat Predikat...</div>
+                    <div class="mt-4 pt-4 border-t border-slate-800 flex justify-around text-xs text-slate-300">
+                        <div>Benar: <span id="correct-count-text" class="font-bold text-emerald-400">0</span>/20</div>
+                        <div>Waktu: <span id="duration-text" class="font-bold text-amber-400">0m 0s</span></div>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap justify-center gap-4 mb-10">
+                    <button onclick="toggleReviewSection()" class="px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-sm border border-slate-700 transition-all flex items-center gap-2">
+                        📖 Lihat Pembahasan Soal
+                    </button>
+                    <button onclick="resetApp()" class="px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-2">
+                        🔄 Ulangi Asesmen Baru
+                    </button>
+                </div>
+
+                <!-- Review Container -->
+                <div id="review-section" class="hidden text-left border-t border-slate-800 pt-8 space-y-4">
+                    <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                        <span>📝 Pembahasan Detail Jawaban:</span>
+                    </h3>
+                    <div id="review-container" class="space-y-4 max-h-[500px] overflow-y-auto pr-2">
+                        <!-- Review item injected by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. TEACHER DASHBOARD SCREEN -->
+            <div id="teacher-screen" class="hidden glass-card rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-2xl">
+                <div class="flex flex-wrap items-center justify-between gap-4 mb-6 border-b border-slate-800 pb-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+                            <span>👨‍‍🏫 Dashboard Guru & Rekap Nilai</span>
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-1">Pantau nilai siswa secara real-time yang langsung terhubung ke database dan Excel Online.</p>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-3">
+                        <button onclick="openSheetsModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-indigo-600/30 flex items-center gap-1.5">
+                            📊 Hubungkan Excel / Google Sheet
+                        </button>
+                        <button onclick="exportToCSV()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-emerald-600/20 flex items-center gap-1.5">
+                            📥 Download File Excel (.csv)
+                        </button>
+                        <button onclick="refreshData()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold border border-slate-700 transition-all">
+                            🔄 Segarkan Data
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Status Live Sync Indicator -->
+                <div id="sheets-status-banner" class="hidden mb-6 p-3 rounded-xl bg-indigo-950/60 border border-indigo-500/30 text-xs text-indigo-300 flex items-center justify-between">
+                    <span class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <strong class="text-white">Live Online Sync Active:</strong> Nilai otomatis terkirim ke Google Sheets / Excel Online Anda.
+                    </span>
+                    <button onclick="openSheetsModal()" class="underline text-indigo-200 hover:text-white">Ubah Webhook Link</button>
+                </div>
+
+                <!-- Filters & Search -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Cari Nama Siswa</label>
+                        <input type="text" id="search-student" oninput="filterResults()" placeholder="Cari nama..." class="w-full px-3.5 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Filter Kelas</label>
+                        <select id="filter-class" onchange="filterResults()" class="w-full px-3.5 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
+                            <option value="">Semua Kelas</option>
+                            <option value="VII A">VII A</option>
+                            <option value="VII B">VII B</option>
+                            <option value="VII C">VII C</option>
+                            <option value="VII D">VII D</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Urutkan Nilai</label>
+                        <select id="sort-order" onchange="filterResults()" class="w-full px-3.5 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
+                            <option value="newest">Terbaru Ditambahkan</option>
+                            <option value="highest">Nilai Tertinggi</option>
+                            <option value="lowest">Nilai Terendah</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Score Table -->
+                <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/50">
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <thead class="bg-slate-900 text-slate-400 uppercase font-bold tracking-wider border-b border-slate-800">
+                            <tr>
+                                <th class="p-3.5">No</th>
+                                <th class="p-3.5">Nama Siswa</th>
+                                <th class="p-3.5">Kelas</th>
+                                <th class="p-3.5">Benar / Total</th>
+                                <th class="p-3.5">Nilai (0-100)</th>
+                                <th class="p-3.5">Durasi</th>
+                                <th class="p-3.5">Waktu Kirim</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teacher-table-body" class="divide-y divide-slate-800/60">
+                            <tr>
+                                <td colspan="7" class="text-center py-8 text-slate-500">Sedang memuat data kiriman siswa...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+
+        <footer class="mt-8 text-center text-xs text-slate-500 pt-4 border-t border-slate-800/50">
+            &copy; 2026 Asesmen Sumatif Matematika SMP/MTs Kelas VII • Interaktif & Terintegrasi Real-time
+        </footer>
+    </div>
+
+    <!-- Mobile Grid Modal -->
+    <div id="grid-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-card rounded-3xl p-6 max-w-sm w-full border border-slate-700">
+            <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-white text-sm">Pilih Soal</h3>
+                <button onclick="toggleGridModal()" class="text-slate-400 hover:text-white font-bold text-lg">✕</button>
+            </div>
+            <div class="grid grid-cols-4 gap-2 mb-4" id="mobile-q-grid">
+                <!-- Injected via JS -->
+            </div>
+            <button onclick="toggleGridModal()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold">
+                Tutup
+            </button>
+        </div>
+    </div>
+
+    <!-- Google Sheets Setup Modal -->
+    <div id="sheets-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="glass-card rounded-3xl p-6 sm:p-8 max-w-2xl w-full border border-indigo-500/30 my-8">
+            <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-white text-lg flex items-center gap-2">
+                    <span>📊 Integrasi Otomatis Google Sheets & Excel Online</span>
+                </h3>
+                <button onclick="closeSheetsModal()" class="text-slate-400 hover:text-white font-bold text-xl">✕</button>
+            </div>
+
+            <div class="space-y-4 text-xs text-slate-300">
+                <p>Ikuti 3 langkah mudah ini agar **nilai siswa otomatis masuk ke Google Sheet / Excel Online Anda** setiap kali siswa selesai mengerjakan kuis:</p>
+                
+                <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800 space-y-2">
+                    <p class="font-bold text-indigo-400">1. Buka Google Sheets Baru & Buka Apps Script:</p>
+                    <p class="text-slate-400">Di Google Sheets Anda, klik menu <strong class="text-white">Ekstensi (Extensions)</strong> ➔ <strong class="text-white">Apps Script</strong>.</p>
+                </div>
+
+                <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800 space-y-2">
+                    <p class="font-bold text-indigo-400">2. Hapus Kode Lama & Salin Kode Berikut:</p>
+                    <div class="relative">
+                        <pre class="bg-slate-950 p-3 rounded-lg text-emerald-400 font-mono text-[11px] overflow-x-auto border border-slate-800 select-all" id="script-code">function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var data = JSON.parse(e.postData.contents);
+  
+  // Buat header jika tabel masih kosong
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(["Tanggal & Waktu", "Nama Siswa", "Kelas", "Nilai (0-100)", "Jawaban Benar", "Durasi"]);
+  }
+  
+  sheet.appendRow([
+    new Date().toLocaleString('id-ID'),
+    data.studentName,
+    data.studentClass,
+    data.score,
+    data.correctCount + " / " + data.totalQuestions,
+    data.durationText
+  ]);
+  
+  return ContentService.createTextOutput("Success").setMimeType(ContentService.MimeType.TEXT);
+}</pre>
+                        <button onclick="copyScriptCode()" class="absolute top-2 right-2 px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded text-[10px]">
+                            📋 Salin Kode
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800 space-y-2">
+                    <p class="font-bold text-indigo-400">3. Deploy sebagai Web App:</p>
+                    <p class="text-slate-400">Klik <strong class="text-white">Penerapan (Deploy)</strong> ➔ <strong class="text-white">Penerapan Baru (New deployment)</strong>. Pilih tipe <strong class="text-white">Aplikasi Web (Web App)</strong>, lalu ubah <strong class="text-white">"Siapa yang memiliki akses" (Who has access)</strong> menjadi <strong class="text-white">"Siapa Saja" (Anyone)</strong>. Lalu klik Deploy dan salin <strong class="text-white">URL Web App</strong> tersebut.</p>
+                </div>
+
+                <div class="pt-2">
+                    <label class="block text-xs font-bold text-slate-200 mb-1">Tempelkan Webhook URL Apps Script Di Sini:</label>
+                    <input type="url" id="sheet-webhook-url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500">
+                </div>
+            </div>
+
+            <div class="mt-6 flex items-center justify-end gap-3">
+                <button onclick="closeSheetsModal()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold">
+                    Batal
+                </button>
+                <button onclick="saveSheetWebhook()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs shadow-lg shadow-indigo-600/30">
+                    💾 Simpan & Aktifkan Link
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Modules Integration -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'math-assessment-v7';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "demo-api-key",
+            authDomain: "demo-project.firebaseapp.com",
+            projectId: "demo-project",
+            storageBucket: "demo-project.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:demo"
+        };
+
+        let db = null;
+        let auth = null;
+        let currentUser = null;
+
+        try {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            } else {
+                await signInAnonymously(auth);
+            }
+            currentUser = auth.currentUser;
+        } catch (e) {
+            console.warn("Firebase initialized in fallback/offline mode:", e);
+        }
+
+        window.saveSubmissionToCloud = async function(data) {
+            // 1. Kirim ke Webhook Google Sheets / Excel Online jika terkonfigurasi
+            const sheetUrl = localStorage.getItem('math_quiz_sheets_url');
+            if (sheetUrl) {
+                try {
+                    fetch(sheetUrl, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    }).catch(e => console.warn("Google Sheets send notice:", e));
+                } catch (e) {
+                    console.warn("Error posting to Google Sheets webhook:", e);
+                }
+            }
+
+            // 2. Simpan ke Firestore
+            if (!db) {
+                saveToLocalStorage(data);
+                return;
+            }
+            try {
+                const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'quiz_results');
+                await addDoc(colRef, {
+                    ...data,
+                    timestamp: new Date().toISOString(),
+                    userId: auth.currentUser?.uid || 'anonymous'
+                });
+            } catch (err) {
+                console.error("Error saving to Firestore, saving to LocalStorage:", err);
+                saveToLocalStorage(data);
+            }
+        };
+
+        window.initCloudDataListener = function(callback) {
+            if (!db) {
+                callback(getLocalSubmissions());
+                return;
+            }
+            try {
+                const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'quiz_results');
+                onSnapshot(colRef, (snapshot) => {
+                    const list = [];
+                    snapshot.forEach(doc => {
+                        list.push({ id: doc.id, ...doc.data() });
+                    });
+                    callback(list);
+                }, (err) => {
+                    callback(getLocalSubmissions());
+                });
+            } catch (e) {
+                callback(getLocalSubmissions());
+            }
+        };
+
+        function saveToLocalStorage(data) {
+            const existing = getLocalSubmissions();
+            existing.unshift({ ...data, timestamp: new Date().toISOString() });
+            localStorage.setItem('math_quiz_results', JSON.stringify(existing));
+        }
+
+        function getLocalSubmissions() {
+            try {
+                return JSON.parse(localStorage.getItem('math_quiz_results')) || [];
+            } catch {
+                return [];
+            }
+        }
+    </script>
+
+    <!-- Main Game & Interface Application Logic -->
+    <script>
+        const questions = [
+            {
+                id: 1,
+                text: "Dalam kompetisi matematika, setiap jawaban yang benar diberi nilai 4, salah -2 dan tidak dijawab -1. Dari 40 soal yang diberikan, Rini berhasil menjawab benar 31 dan salah 6. Skor yang diperoleh Rini adalah ....",
+                options: { a: "112", b: "109", c: "107", d: "105" },
+                correct: "b",
+                explanation: "Benar: 31 x 4 = 124. Salah: 6 x (-2) = -12. Tidak dijawab: (40 - 31 - 6) = 3 x (-1) = -3. Total skor = 124 - 12 - 3 = 109."
+            },
+            {
+                id: 2,
+                text: "Suhu di suatu ruangan pendingin adalah -5°C. Suhu di dalam ruangan 24°C. Selisih suhu ruangan pendingin dengan suhu ruangan adalah ....",
+                options: { a: "29°C", b: "27°C", c: "25°C", d: "24°C" },
+                correct: "a",
+                explanation: "Selisih suhu = Suhu tinggi - Suhu rendah = 24 - (-5) = 24 + 5 = 29°C."
+            },
+            {
+                id: 3,
+                text: "Jika a = -3 maka nilai dari a³ adalah ....",
+                options: { a: "-27", b: "-9", c: "9", d: "27" },
+                correct: "a",
+                explanation: "a³ = (-3) x (-3) x (-3) = 9 x (-3) = -27."
+            },
+            {
+                id: 4,
+                text: "Nilai dari <span class='font-bold'>∛64</span> (akar pangkat tiga dari 64) adalah ....",
+                options: { a: "4", b: "8", c: "12", d: "16" },
+                correct: "a",
+                explanation: "4 x 4 x 4 = 64, maka ∛64 = 4."
+            },
+            {
+                id: 5,
+                text: "Jika m = -3 dan n = -4 maka nilai dari 2m - 2n adalah ....",
+                options: { a: "4", b: "3", c: "2", d: "1" },
+                correct: "c",
+                explanation: "2m - 2n = 2(-3) - 2(-4) = -6 - (-8) = -6 + 8 = 2."
+            },
+            {
+                id: 6,
+                text: "Pernyataan berikut yang tidak benar adalah ....",
+                options: { a: "2 < 3", b: "-1 > -3", c: "-3 < -2", d: "-2 > 0" },
+                correct: "d",
+                explanation: "-2 bernilai lebih kecil dari 0 (-2 < 0), sehingga pernyataan -2 > 0 adalah SALAH."
+            },
+            {
+                id: 7,
+                text: "Nilai dari [4 x (-3)] x (-5) adalah ....",
+                options: { a: "55", b: "65", c: "60", d: "70" },
+                correct: "c",
+                explanation: "[4 x (-3)] x (-5) = [-12] x (-5) = 60."
+            },
+            {
+                id: 8,
+                text: "Hasil perhitungan dari 8 - 12 : 4 - 2 = ....",
+                options: { a: "1", b: "2", c: "3", d: "4" },
+                correct: "c",
+                explanation: "Dahulukan pembagian: 12 : 4 = 3. Maka: 8 - 3 - 2 = 5 - 2 = 3."
+            },
+            {
+                id: 9,
+                text: "Himpunan bilangan asli kurang dari 8 adalah ....",
+                options: {
+                    a: "{0, 1, 2, 3, 4, 5, 6, 7}",
+                    b: "{1, 2, 3, 4, 5, 6, 7}",
+                    c: "{2, 3, 5, 7}",
+                    d: "{1, 3, 5, 7}"
+                },
+                correct: "b",
+                explanation: "Bilangan asli dimulai dari angka 1. Bilangan asli kurang dari 8 adalah {1, 2, 3, 4, 5, 6, 7}."
+            },
+            {
+                id: 10,
+                text: "Hasil dari (621 x 57) + (379 x 57) = ....",
+                options: { a: "47.210", b: "49.800", c: "57.000", d: "69.420" },
+                correct: "c",
+                explanation: "Sifat distributif: (621 + 379) x 57 = 1.000 x 57 = 57.000."
+            },
+            {
+                id: 11,
+                text: "Di sebuah ruangan pendingin, suhu awal adalah 10°C. Karena terjadi kerusakan, suhu ruangan tersebut turun 3°C setiap 2 jam. Jika kerusakan berlangsung selama 8 jam, berapakah suhu akhir di ruangan tersebut?",
+                options: { a: "-12°C", b: "-2°C", c: "2°C", d: "4°C" },
+                correct: "b",
+                explanation: "Penurunan suhu = (8 jam / 2 jam) x 3°C = 12°C. Suhu akhir = 10°C - 12°C = -2°C."
+            },
+            {
+                id: 12,
+                text: "Dalam sebuah ujian matematika, aturan skor: benar = 4, salah = -2, tidak dijawab = -1. Andi menjawab 15 soal benar dan 3 soal salah dari total 20 soal. Berapakah skor total Andi?",
+                options: { a: "52", b: "54", c: "56", d: "58" },
+                correct: "a",
+                explanation: "Benar: 15 x 4 = 60. Salah: 3 x (-2) = -6. Tidak dijawab: (20 - 15 - 3) = 2 x (-1) = -2. Total = 60 - 6 - 2 = 52."
+            },
+            {
+                id: 13,
+                text: "Seorang pengrajin ingin membagi 48 manik-manik merah dan 60 manik-manik biru ke dalam beberapa kotak dengan jumlah sama banyak. Faktorisasi prima dari jumlah manik-manik biru (60) adalah ....",
+                options: { a: "2 x 3 x 5", b: "2² x 3 x 5", c: "2 x 3² x 5", d: "2² x 3² x 5" },
+                correct: "b",
+                explanation: "60 = 2 x 30 = 2 x 2 x 15 = 2² x 3 x 5."
+            },
+            {
+                id: 14,
+                text: "Berdasarkan soal nomor 13, pengrajin ingin membuat paket dengan jumlah manik-manik merah dan biru sama banyak. Berapa jumlah kotak terbanyak yang dapat disiapkan pengrajin?",
+                options: { a: "6", b: "8", c: "10", d: "12" },
+                correct: "d",
+                explanation: "Cari FPB(48, 60): 48 = 2⁴ x 3, 60 = 2² x 3 x 5. FPB = 2² x 3 = 12 kotak."
+            },
+            {
+                id: 15,
+                text: "Lampu A menyala setiap 12 detik sekali, dan lampu B menyala setiap 15 detik sekali. Kedua lampu menyala bersama pada pukul 08.00. Pada detik ke berapa kedua lampu menyala bersamaan lagi?",
+                options: { a: "30 detik kemudian", b: "45 detik kemudian", c: "60 detik kemudian", d: "75 detik kemudian" },
+                correct: "c",
+                explanation: "Cari KPK(12, 15): 12 = 2² x 3, 15 = 3 x 5. KPK = 2² x 3 x 5 = 60 detik."
+            },
+            {
+                id: 16,
+                text: "Suhu di dalam freezer saat ini adalah -12°C. Ibu mengeluarkan daging ke suhu ruangan yang suhunya 20°C lebih tinggi. Suhu daging sekarang adalah ....",
+                options: { a: "-32°C", b: "-8°C", c: "8°C", d: "32°C" },
+                correct: "c",
+                explanation: "Suhu daging = -12°C + 20°C = 8°C."
+            },
+            {
+                id: 17,
+                text: "Empat siswa ujian matematika: Andi = 0,85; Budi = <span class='fraction'><span>5</span><span>6</span></span>; Cici = 82%; Dedi = <span class='fraction'><span>3</span><span>4</span></span>. Siapakah yang mendapatkan nilai tertinggi?",
+                options: { a: "Andi", b: "Budi", c: "Cici", d: "Dedi" },
+                correct: "a",
+                explanation: "Ubah ke desimal: Andi = 0,850; Budi = 0,833; Cici = 0,820; Dedi = 0,750. Nilai tertinggi adalah Andi."
+            },
+            {
+                id: 18,
+                text: "Gita mempunyai pita sepanjang <span class='mixed-fraction'>3<span class='fraction'><span>1</span><span>2</span></span></span> meter. Digunakan untuk mengikat kado <span class='mixed-fraction'>1<span class='fraction'><span>3</span><span>4</span></span></span> meter. Sisa pita Gita adalah ....",
+                options: {
+                    a: "<span class='mixed-fraction'>1<span class='fraction'><span>1</span><span>4</span></span></span> meter",
+                    b: "<span class='mixed-fraction'>1<span class='fraction'><span>3</span><span>4</span></span></span> meter",
+                    c: "<span class='mixed-fraction'>2<span class='fraction'><span>1</span><span>4</span></span></span> meter",
+                    d: "<span class='mixed-fraction'>2<span class='fraction'><span>3</span><span>4</span></span></span> meter"
+                },
+                correct: "b",
+                explanation: "3 1/2 - 1 3/4 = 7/2 - 7/4 = 14/4 - 7/4 = 7/4 = 1 3/4 meter."
+            },
+            {
+                id: 19,
+                text: "Ibu membeli 2,5 kg apel. Harga 1 kg apel adalah Rp24.000,00. Berapa total uang yang harus dibayar Ibu?",
+                options: { a: "Rp48.000,00", b: "Rp50.000,00", c: "Rp55.000,00", d: "Rp60.000,00" },
+                correct: "d",
+                explanation: "Total harga = 2,5 x Rp24.000,00 = Rp60.000,00."
+            },
+            {
+                id: 20,
+                text: "Pak Budi memiliki <span class='mixed-fraction'>6<span class='fraction'><span>1</span><span>4</span></span></span> kg gula. Dikemas ke kantong kecil masing-masing <span class='fraction'><span>1</span><span>4</span></span> kg gula. Banyak kantong plastik yang dibutuhkan adalah ....",
+                options: { a: "12 buah", b: "15 buah", c: "20 buah", d: "25 buah" },
+                correct: "d",
+                explanation: "Banyak kantong = (6 1/4) : (1/4) = (25/4) : (1/4) = 25/4 x 4/1 = 25 kantong."
+            }
+        ];
+
+        let currentQuestionIdx = 0;
+        let studentInfo = { name: '', class: '' };
+        let userAnswers = {};
+        let soundEnabled = true;
+        let timerInterval = null;
+        let elapsedSeconds = 0;
+        let allSubmissions = [];
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+                if (type === 'select') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.1);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+                    osc.start(now);
+                    osc.stop(now + 0.12);
+                } else if (type === 'click') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(300, now);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                } else if (type === 'finish') {
+                    [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+                        const o = audioCtx.createOscillator();
+                        const g = audioCtx.createGain();
+                        o.connect(g);
+                        g.connect(audioCtx.destination);
+                        o.frequency.setValueAtTime(freq, now + idx * 0.1);
+                        g.gain.setValueAtTime(0.15, now + idx * 0.1);
+                        g.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.1 + 0.3);
+                        o.start(now + idx * 0.1);
+                        o.stop(now + idx * 0.1 + 0.3);
+                    });
+                }
+            } catch (e) {}
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('sound-icon').textContent = soundEnabled ? '🔊' : '🔇';
+        }
+
+        function startQuiz(event) {
+            event.preventDefault();
+            const nameInput = document.getElementById('student-name').value.trim();
+            const classInput = document.getElementById('student-class').value;
+
+            if (!nameInput || !classInput) return;
+
+            studentInfo.name = nameInput;
+            studentInfo.class = classInput;
+
+            document.getElementById('quiz-student-name').textContent = studentInfo.name;
+            document.getElementById('quiz-student-class').textContent = 'Kelas ' + studentInfo.class;
+
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+
+            playSound('select');
+            startTimer();
+            renderQuestion(0);
+            renderGridPalettes();
+        }
+
+        function startTimer() {
+            elapsedSeconds = 0;
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                elapsedSeconds++;
+                const mins = Math.floor(elapsedSeconds / 60).toString().padStart(2, '0');
+                const secs = (elapsedSeconds % 60).toString().padStart(2, '0');
+                document.getElementById('timer-display').textContent = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function renderQuestion(index) {
+            currentQuestionIdx = index;
+            const q = questions[index];
+
+            document.getElementById('current-q-num').textContent = index + 1;
+            document.getElementById('question-text').innerHTML = `${q.id}. ${q.text}`;
+
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            Object.entries(q.options).forEach(([key, value]) => {
+                const isSelected = userAnswers[q.id] === key;
+                const optBtn = document.createElement('button');
+                optBtn.type = 'button';
+                optBtn.onclick = () => selectOption(q.id, key);
+                optBtn.className = `w-full text-left p-4 rounded-xl border transition-all flex items-center justify-between text-sm sm:text-base font-medium ${
+                    isSelected 
+                    ? 'bg-indigo-600/30 border-indigo-500 text-white shadow-lg shadow-indigo-500/20 ring-2 ring-indigo-500/50' 
+                    : 'bg-slate-900/60 hover:bg-slate-800/80 border-slate-800 text-slate-300'
+                }`;
+
+                optBtn.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold ${
+                            isSelected ? 'bg-indigo-500 text-white' : 'bg-slate-800 text-slate-400'
+                        }">
+                            ${key.toUpperCase()}
+                        </span>
+                        <span>${value}</span>
+                    </div>
+                    ${isSelected ? '<span class="text-indigo-400 font-bold">✓</span>' : ''}
+                `;
+                container.appendChild(optBtn);
+            });
+
+            document.getElementById('prev-btn').style.visibility = index === 0 ? 'hidden' : 'visible';
+            
+            if (index === questions.length - 1) {
+                document.getElementById('next-btn').classList.add('hidden');
+                document.getElementById('submit-quiz-btn').classList.remove('hidden');
+            } else {
+                document.getElementById('next-btn').classList.remove('hidden');
+                document.getElementById('submit-quiz-btn').classList.add('hidden');
+            }
+
+            updateGridPalettes();
+            updateAnsweredCount();
+        }
+
+        function selectOption(qId, optionKey) {
+            userAnswers[qId] = optionKey;
+            playSound('select');
+            renderQuestion(currentQuestionIdx);
+        }
+
+        function navigateQuestion(direction) {
+            playSound('click');
+            const newIdx = currentQuestionIdx + direction;
+            if (newIdx >= 0 && newIdx < questions.length) {
+                renderQuestion(newIdx);
+            }
+        }
+
+        function jumpToQuestion(idx) {
+            playSound('click');
+            renderQuestion(idx);
+            document.getElementById('grid-modal').classList.add('hidden');
+        }
+
+        function updateAnsweredCount() {
+            const count = Object.keys(userAnswers).length;
+            document.getElementById('answered-count').textContent = count;
+        }
+
+        function renderGridPalettes() {
+            const desktopGrid = document.getElementById('desktop-q-grid');
+            const mobileGrid = document.getElementById('mobile-q-grid');
+            desktopGrid.innerHTML = '';
+            mobileGrid.innerHTML = '';
+
+            questions.forEach((q, idx) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.id = `q-grid-btn-${idx}`;
+                btn.onclick = () => jumpToQuestion(idx);
+                btn.className = getGridBtnClass(idx);
+                btn.textContent = idx + 1;
+
+                desktopGrid.appendChild(btn);
+                mobileGrid.appendChild(btn.cloneNode(true));
+            });
+            
+            Array.from(mobileGrid.children).forEach((child, idx) => {
+                child.onclick = () => jumpToQuestion(idx);
+            });
+        }
+
+        function getGridBtnClass(idx) {
+            const q = questions[idx];
+            const isAnswered = userAnswers[q.id] !== undefined;
+            const isActive = idx === currentQuestionIdx;
+
+            if (isActive) return 'py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20 ring-2 ring-amber-400';
+            if (isAnswered) return 'py-2 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-sm';
+            return 'py-2 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-400 hover:bg-slate-800';
+        }
+
+        function updateGridPalettes() {
+            questions.forEach((_, idx) => {
+                const btns = document.querySelectorAll(`#q-grid-btn-${idx}`);
+                btns.forEach(b => {
+                    b.className = getGridBtnClass(idx);
+                });
+            });
+        }
+
+        function toggleGridModal() {
+            const modal = document.getElementById('grid-modal');
+            modal.classList.toggle('hidden');
+        }
+
+        function confirmSubmitQuiz() {
+            const unanswered = questions.length - Object.keys(userAnswers).length;
+            if (unanswered > 0) {
+                if (!confirm(`Anda masih memiliki ${unanswered} soal yang belum dijawab. Yakin ingin mengumpulkan?`)) {
+                    return;
+                }
+            }
+            submitQuiz();
+        }
+
+        function submitQuiz() {
+            clearInterval(timerInterval);
+            playSound('finish');
+
+            let correctCount = 0;
+            questions.forEach(q => {
+                if (userAnswers[q.id] === q.correct) {
+                    correctCount++;
+                }
+            });
+
+            const finalScore = Math.round((correctCount / questions.length) * 100);
+            
+            let predicate = "Perlu Lebih Banyak Belajar 📚";
+            if (finalScore >= 90) predicate = "Sangat Luar Biasa! 🎉 Perfect!";
+            else if (finalScore >= 75) predicate = "Sangat Baik! 🌟 Lulus KKM";
+            else if (finalScore >= 60) predicate = "Cukup Baik! 👍 Tingkatkan Lagi";
+
+            const mins = Math.floor(elapsedSeconds / 60);
+            const secs = elapsedSeconds % 60;
+            const durationStr = `${mins}m ${secs}s`;
+
+            document.getElementById('result-student-name').textContent = studentInfo.name;
+            document.getElementById('result-student-class').textContent = studentInfo.class;
+            document.getElementById('final-score-display').textContent = finalScore;
+            document.getElementById('score-predicate').textContent = predicate;
+            document.getElementById('correct-count-text').textContent = correctCount;
+            document.getElementById('duration-text').textContent = durationStr;
+
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+
+            const payload = {
+                studentName: studentInfo.name,
+                studentClass: studentInfo.class,
+                score: finalScore,
+                correctCount: correctCount,
+                totalQuestions: questions.length,
+                durationSeconds: elapsedSeconds,
+                durationText: durationStr,
+                answers: userAnswers
+            };
+
+            if (typeof window.saveSubmissionToCloud === 'function') {
+                window.saveSubmissionToCloud(payload);
+            }
+
+            renderReviewSection();
+        }
+
+        function toggleReviewSection() {
+            const sec = document.getElementById('review-section');
+            sec.classList.toggle('hidden');
+        }
+
+        function renderReviewSection() {
+            const container = document.getElementById('review-container');
+            container.innerHTML = '';
+
+            questions.forEach(q => {
+                const userAns = userAnswers[q.id];
+                const isCorrect = userAns === q.correct;
+
+                const item = document.createElement('div');
+                item.className = `p-4 rounded-2xl border text-xs sm:text-sm ${
+                    isCorrect ? 'bg-emerald-950/30 border-emerald-500/30' : 'bg-rose-950/30 border-rose-500/30'
+                }`;
+
+                item.innerHTML = `
+                    <div class="flex items-start justify-between gap-2 mb-2">
+                        <span class="font-bold ${isCorrect ? 'text-emerald-400' : 'text-rose-400'}">
+                            Soal #${q.id} ${isCorrect ? '✓ Benar' : '✕ Salah'}
+                        </span>
+                    </div>
+                    <p class="text-slate-200 font-medium mb-3">${q.text}</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2 bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                        <div>
+                            <span class="text-slate-400 text-xs">Jawaban Anda:</span>
+                            <div class="font-bold ${isCorrect ? 'text-emerald-400' : 'text-rose-400'}">
+                                ${userAns ? `${userAns.toUpperCase()}. ${q.options[userAns]}` : 'Tidak dijawab'}
+                            </div>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 text-xs">Kunci Jawaban:</span>
+                            <div class="font-bold text-emerald-400">
+                                ${q.correct.toUpperCase()}. ${q.options[q.correct]}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-xs text-slate-400 bg-slate-950/60 p-2.5 rounded-lg border border-slate-800">
+                        💡 <strong>Pembahasan:</strong> ${q.explanation}
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function resetApp() {
+            userAnswers = {};
+            currentQuestionIdx = 0;
+            document.getElementById('result-screen').classList.add('hidden');
+            document.getElementById('start-screen').classList.remove('hidden');
+            document.getElementById('student-form').reset();
+            window.scrollTo(0, 0);
+        }
+
+        function switchTab(tab) {
+            playSound('click');
+            const quizBtn = document.getElementById('nav-quiz-btn');
+            const teacherBtn = document.getElementById('nav-teacher-btn');
+
+            if (tab === 'quiz') {
+                quizBtn.className = "px-3.5 py-2 rounded-xl bg-indigo-600 text-white font-semibold text-xs shadow-lg shadow-indigo-600/30 transition-all";
+                teacherBtn.className = "px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/50 text-xs font-semibold transition-all";
+
+                document.getElementById('teacher-screen').classList.add('hidden');
+                if (Object.keys(userAnswers).length > 0 && elapsedSeconds > 0) {
+                    document.getElementById('quiz-screen').classList.remove('hidden');
+                } else {
+                    document.getElementById('start-screen').classList.remove('hidden');
+                }
+            } else if (tab === 'teacher') {
+                teacherBtn.className = "px-3.5 py-2 rounded-xl bg-indigo-600 text-white font-semibold text-xs shadow-lg shadow-indigo-600/30 transition-all";
+                quizBtn.className = "px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/50 text-xs font-semibold transition-all";
+
+                document.getElementById('start-screen').classList.add('hidden');
+                document.getElementById('quiz-screen').classList.add('hidden');
+                document.getElementById('result-screen').classList.add('hidden');
+                document.getElementById('teacher-screen').classList.remove('hidden');
+
+                loadTeacherData();
+            }
+        }
+
+        function loadTeacherData() {
+            if (typeof window.initCloudDataListener === 'function') {
+                window.initCloudDataListener((data) => {
+                    allSubmissions = data;
+                    filterResults();
+                });
+            }
+        }
+
+        function refreshData() {
+            playSound('click');
+            loadTeacherData();
+        }
+
+        function filterResults() {
+            const search = document.getElementById('search-student').value.toLowerCase();
+            const classFilter = document.getElementById('filter-class').value;
+            const sortOrder = document.getElementById('sort-order').value;
+
+            let filtered = allSubmissions.filter(item => {
+                const matchName = (item.studentName || '').toLowerCase().includes(search);
+                const matchClass = !classFilter || item.studentClass === classFilter;
+                return matchName && matchClass;
+            });
+
+            if (sortOrder === 'highest') {
+                filtered.sort((a, b) => (b.score || 0) - (a.score || 0));
+            } else if (sortOrder === 'lowest') {
+                filtered.sort((a, b) => (a.score || 0) - (b.score || 0));
+            } else {
+                filtered.sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
+            }
+
+            renderTeacherTable(filtered);
+        }
+
+        function renderTeacherTable(data) {
+            const tbody = document.getElementById('teacher-table-body');
+            tbody.innerHTML = '';
+
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-500">Belum ada data nilai siswa yang dikirim.</td></tr>`;
+                return;
+            }
+
+            data.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-900/60 transition-colors';
+                
+                const timeFormatted = item.timestamp ? new Date(item.timestamp).toLocaleString('id-ID', {
+                    dateStyle: 'short', timeStyle: 'short'
+                }) : '-';
+
+                tr.innerHTML = `
+                    <td class="p-3.5 text-slate-500">${index + 1}</td>
+                    <td class="p-3.5 font-bold text-slate-100">${item.studentName || '-'}</td>
+                    <td class="p-3.5"><span class="px-2 py-1 bg-slate-800 rounded text-indigo-300 font-semibold">${item.studentClass || '-'}</span></td>
+                    <td class="p-3.5 text-slate-300">${item.correctCount || 0} / 20</td>
+                    <td class="p-3.5">
+                        <span class="px-2.5 py-1 rounded-full font-extrabold ${
+                            (item.score || 0) >= 75 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                        }">
+                            ${item.score || 0}
+                        </span>
+                    </td>
+                    <td class="p-3.5 text-slate-400">${item.durationText || '-'}</td>
+                    <td class="p-3.5 text-slate-500">${timeFormatted}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function exportToCSV() {
+            if (allSubmissions.length === 0) {
+                alert("Tidak ada data untuk diexport!");
+                return;
+            }
+
+            // Menambahkan UTF-8 BOM (\uFEFF) agar file bisa langsung dibuka sempurna di Microsoft Excel
+            let csvContent = "\uFEFFNo,Nama Siswa,Kelas,Skor (0-100),Jumlah Benar,Durasi Pengerjaan,Waktu Pengiriman\n";
+            allSubmissions.forEach((item, idx) => {
+                const row = [
+                    idx + 1,
+                    `"${(item.studentName || '').replace(/"/g, '""')}"`,
+                    `"${(item.studentClass || '').replace(/"/g, '""')}"`,
+                    item.score || 0,
+                    `"${item.correctCount || 0} / 20"`,
+                    `"${item.durationText || ''}"`,
+                    `"${item.timestamp ? new Date(item.timestamp).toLocaleString('id-ID') : ''}"`
+                ].join(",");
+                csvContent += row + "\n";
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Rekap_Nilai_Matematika_Kelas_VII_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function openSheetsModal() {
+            playSound('click');
+            const savedUrl = localStorage.getItem('math_quiz_sheets_url') || '';
+            document.getElementById('sheet-webhook-url').value = savedUrl;
+            document.getElementById('sheets-modal').classList.remove('hidden');
+        }
+
+        function closeSheetsModal() {
+            document.getElementById('sheets-modal').classList.add('hidden');
+        }
+
+        function saveSheetWebhook() {
+            playSound('click');
+            const url = document.getElementById('sheet-webhook-url').value.trim();
+            if (url) {
+                localStorage.setItem('math_quiz_sheets_url', url);
+                document.getElementById('sheets-status-banner').classList.remove('hidden');
+            } else {
+                localStorage.removeItem('math_quiz_sheets_url');
+                document.getElementById('sheets-status-banner').classList.add('hidden');
+            }
+            closeSheetsModal();
+        }
+
+        function copyScriptCode() {
+            const codeText = document.getElementById('script-code').innerText;
+            const tempInput = document.createElement('textarea');
+            tempInput.value = codeText;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            alert("Kode Apps Script berhasil disalin! Silakan tempelkan di Google Sheets Anda.");
+        }
+
+        window.addEventListener('load', () => {
+            // Check existing webhook status
+            if (localStorage.getItem('math_quiz_sheets_url')) {
+                const banner = document.getElementById('sheets-status-banner');
+                if (banner) banner.classList.remove('hidden');
+            }
+
+            const canvas = document.getElementById('bg-canvas');
+            const ctx = canvas.getContext('2d');
+
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            const mathSymbols = ['+', '−', '×', '÷', 'π', '√', 'x²', '%', '7', '∫', '∑', '3.14', '½'];
+            const particles = Array.from({ length: 30 }, () => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                symbol: mathSymbols[Math.floor(Math.random() * mathSymbols.length)],
+                size: Math.random() * 18 + 12,
+                speedY: -(Math.random() * 0.4 + 0.1),
+                opacity: Math.random() * 0.25 + 0.05
+            }));
+
+            function animateCanvas() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                particles.forEach(p => {
+                    p.y += p.speedY;
+                    if (p.y < -30) {
+                        p.y = canvas.height + 30;
+                        p.x = Math.random() * canvas.width;
+                    }
+
+                    ctx.font = `${p.size}px Outfit, sans-serif`;
+                    ctx.fillStyle = `rgba(165, 180, 252, ${p.opacity})`;
+                    ctx.fillText(p.symbol, p.x, p.y);
+                });
+
+                requestAnimationFrame(animateCanvas);
+            }
+            animateCanvas();
+        });
+    </script>
+</body>
+</html>
